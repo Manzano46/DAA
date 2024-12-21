@@ -1,0 +1,26 @@
+\documentclass[a4paper]{article}
+
+\usepackage[spanish]{babel} 
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+
+\usepackage{amsmath,amsthm} 
+\usepackage{graphicx} 
+\usepackage{hyperref}
+
+\title{Descripción del Problema} 
+\author{Kevin Manzano Rodr\'iguez \\ Roger Fuentes Rodr\'iguez} 
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Se tiene un modelo de ML general que recibe grafos como entrada, una caja negra $M$. El problema de b\'usqueda
+de contrafactuales trata de encontrar dado una entrada $G$, una perturbaci\'on $G'$ creada a partir de $G$ cumpliendo que, al obtener el resultado del modelo en ambas entradas, las salidas sean diferentes.
+\\
+Es de nuestro inter\'es buscar contrafactuales 'buenos', con esto nos referimos a cercanos a la entrada inicial. Entonces formalizando, dado una caja negra $M$, y un grafo $G$, se quiere devolver $G'$ el m\'as cercano a $G$ cumpliendo que las salidas del modelo para $G$ y $G'$ sean diferentes, en caso de que existan.
+
+\end{document} $
