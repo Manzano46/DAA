@@ -18,9 +18,16 @@
 
 \maketitle
 
-Se tiene un modelo de ML general que recibe grafos como entrada, una caja negra $M$. El problema de b\'usqueda
-de contrafactuales trata de encontrar dado una entrada $G$, una perturbaci\'on $G'$ creada a partir de $G$ cumpliendo que, al obtener el resultado del modelo en ambas entradas, las salidas sean diferentes.
-\\
-Es de nuestro inter\'es buscar contrafactuales 'buenos', con esto nos referimos a cercanos a la entrada inicial. Entonces formalizando, dado una caja negra $M$, y un grafo $G$, se quiere devolver $G'$ el m\'as cercano a $G$ cumpliendo que las salidas del modelo para $G$ y $G'$ sean diferentes, en caso de que existan.
+\section{Introducción}
+En este trabajo, exploramos un modelo de aprendizaje automático (ML) que recibe grafos como entrada, denominado caja negra \(M\). Específicamente, nos enfocamos en el problema de búsqueda de contrafactuales, que consiste en encontrar una perturbación \(G'\) a partir de un grafo inicial \(G\) tal que las salidas del modelo para ambas entradas sean diferentes.
+
+\section{Definición del Problema}
+Nuestro objetivo es identificar contrafactuales "buenos", es decir, aquellos que son cercanos a \(G\). Formalmente, dado un modelo \(M\) y un grafo \(G\), buscamos devolver \(G'\) lo más cercano posible a \(G\) cumpliendo con la condición de que las salidas del modelo para \(G\) y \(G'\) sean distintas.
+
+\section{Complejidad del Problema}
+Este problema es intrínsecamente complicado, similar a los problemas NP-completos en términos de decisión. En el contexto de optimización, se clasifica como NP-duro. 
+
+\section{Aplicaciones Prácticas}
+Las aplicaciones son diversas; por ejemplo, en redes sociales donde los algoritmos de recomendación pueden generar sugerencias inesperadas. La búsqueda de contrafactuales permite entender cómo pequeñas modificaciones pueden alterar significativamente las recomendaciones ofrecidas. Además, el estudio de contrafactuales proporciona información sobre la robustez y confiabilidad de las predicciones del modelo, permitiendo evaluar hasta qué punto se puede modificar un objeto sin afectar su resultado final.
 
 \end{document} $
