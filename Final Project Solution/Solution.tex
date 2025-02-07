@@ -71,6 +71,138 @@ Entonces tenemos una soluci\'on en $O(n^2)$ donde $n$ es el tamaño del dataset 
 
 \subsection{Local Search}
 
+Sea $G = (V, E)$ un grafo genérico y un modelo de caja negra (u \emph{oráculo}) $M$ que clasifica o decide sobre $G$. 
+Decimos que un \emph{contrafractual} para $G$ es un grafo $G'$ resultante de perturbar (insertar o eliminar) aristas en $G$ tales que la salida de $M$ con entrada $G'$ cambia con respecto a la salida de $M$ con entrada $G$.  
+El problema \emph{GCE} (\emph{Graph Counterfactual Explanation}) pregunta: 
+
+\begin{quote}
+    \emph{¿Cuál es el número mínimo de aristas que deben perturbarse en $G$ para que el modelo $M$ cambie su decisión?}
+\end{quote}
+
+En términos de decisión, se formula como:
+
+\begin{definition}[Problema de Decisión GCE]
+Dado un grafo $G=(V,E)$, un entero $k$ y un oráculo $M$ que toma grafos como entrada,  
+¿existe un conjunto de perturbaciones $S \subseteq E^+$
+(\,$|S| \leq k$\,) 
+tal que, al perturbar todas las aristas en $S$ y obtener $G'$, 
+el oráculo $M$ cambie su salida con respecto a la que proporcionó al evaluar $G$?
+\end{definition}
+
+Aquí, $E^+$ es el conjunto de todas las aristas posibles (existentes o no) que podrían alterarse.
+
+\subsection{Reducción desde FES}
+
+Para probar que GCE es NP-Completo, se realiza una reducción polinomial desde el problema \emph{FES} (Conjunto de Aristas de Retroalimentación, por sus siglas en inglés). 
+
+\begin{definition}[FES - Feedback Edge Set]
+Sea $G=(V,E)$ un grafo no dirigido. 
+Un \emph{FES} es un subconjunto $F \subseteq E$ tal que, al eliminar las aristas en $F$, el grafo se vuelve acíclico (un bosque).  
+El problema de decisión asociado pregunta: \emph{dado un entero $k$, existe un conjunto $F$ con $|F|\leq k$ que elimine todos los ciclos en $G$?}
+\end{definition}
+
+Se sabe que FES es NP-completo (fue uno de los 21 problemas que Karp demostró NP-completos).
+
+\subsubsection*{Teorema principal}
+
+\begin{theorem}\label{thm:NP}
+El problema GCE es NP-completo, pues FES se reduce a GCE.  
+\end{theorem}
+
+\begin{proof}[Demostración]
+Sea $G$ un grafo no dirigido para el problema FES.  
+Definimos un oráculo $M'$ que, dada una entrada $H$, responde:
+\[
+ M'(H) = 
+ \begin{cases}
+   \text{true}, & \text{si }H\text{ es acíclico;}\\
+   \text{false}, & \text{en caso contrario.}
+ \end{cases}
+\]
+Claramente, decidir si $H$ es acíclico o no está en NP.  
+Mostraremos:
+
+\[
+\text{FES}(G,k) = \text{true} 
+\quad \Longleftrightarrow \quad
+\text{GCE}(G, k, M') = \text{true}.
+\]
+
+\paragraph{($\Rightarrow$) Si FES$(G,k) =$ true.}
+Existe un conjunto $S \subseteq E$ con $|S|\leq k$ tal que eliminar $S$ de $G$ produce un grafo acíclico $G'$.  
+Al presentar $G$ a $M'$, su salida es \texttt{false} (pues $G$ tenía ciclos).  
+Al perturbar (eliminar) exactamente las aristas en $S$, obtenemos $G'$ sin ciclos.  
+Entonces $M'(G') = \texttt{true}$.  
+Por definición, esto es un contrafractual para $G$ con a lo sumo $k$ perturbaciones.  
+Así, GCE$(G,k,M') = \texttt{true}$.
+
+\paragraph{($\Leftarrow$) Si GCE$(G, k, M') =$ true.}
+Existe un conjunto de perturbaciones $S$ con $|S| \leq k$ que convierte $G$ de cíclico a acíclico (pues la salida de $M'$ cambia de \texttt{false} a \texttt{true}).  
+
+\begin{lemma}\label{lemma:eliminar_aristas}
+Si en las perturbaciones de $S$ hay inserciones de aristas, podemos descartarlas sin afectar el cambio de \texttt{false} a \texttt{true}. 
+\end{lemma}
+\begin{proof}[Idea de la demostración]
+Agregar aristas no ayuda a eliminar ciclos; si el grafo $G'$ final es acíclico con inserciones y eliminaciones, basta quitar las inserciones para quedarse sólo con las eliminaciones, manteniéndose acíclico.  
+\end{proof}
+
+En consecuencia, podemos obtener un subconjunto $S'\subseteq S$ (solo eliminaciones) tal que $|S'|\le k$ y $G\setminus S'$ sea acíclico.  
+Esto corresponde exactamente a la solución FES$(G,k)=\texttt{true}$.  
+
+\noindent
+Por tanto, existe reducción polinomial de FES a GCE.  
+Al estar FES en NP-completo, concluimos que GCE es NP-completo.  
+
+\end{proof}
+
+\section{Metaheurística de Búsqueda Local (en Versión Resumida)}
+
+Para aproximar la solución de GCE (dado que es NP-completo), se propone una metaheurística basada en \emph{búsqueda local}.  
+En particular, se emplea \textbf{Búsqueda de Vecindad Variable (VNS)}, cuyas ideas clave son:
+
+\begin{itemize}
+    \item \textbf{Definición de solución:} 
+    Una solución es un subconjunto de aristas perturbadas (insertadas/eliminadas).
+    \item \textbf{Vecindarios:} 
+    Se contemplan tres criterios de vecindad principales sobre la solución actual $S$:
+    \begin{enumerate}
+        \item Reemplazar aristas en $S$ por otras que no están en $S$. 
+        \item Eliminar aristas de $S$. 
+        \item Agregar nuevas aristas que no estén en $S$. 
+    \end{enumerate}
+    \item \textbf{Estrategia de VNS:} 
+    \begin{enumerate}
+        \item Iniciar con una solución factible (un contrafractual cualquiera, posiblemente grande).  
+        \item Cambiar sistemáticamente de vecindad cuando no se consiguen mejoras (o cuando se encuentran mínimos locales).  
+        \item Si se encuentra una mejor solución en una vecindad, se actualiza la solución actual y se regresa al vecindario más pequeño.  
+        \item Repetir hasta criterio de parada (tiempo, número de iteraciones sin mejora, etc.). 
+    \end{enumerate}
+    \item \textbf{Aceptación de mejoras:} 
+    Por lo general se adopta la primera mejora (\emph{first improvement}) o la mejor mejora (\emph{best improvement}) en cada vecindario.
+\end{itemize}
+
+\subsection*{Esquema en pseudocódigo resumido}
+
+\begin{verbatim}
+1. s <- GenerarSolucionInicialFactible(G)
+2. k <- 1
+3. mientras (no se cumpla criterio_parada) hacer:
+   3.1. s' <- Shaking(s, k)   // Pequeña sacudida (perturbación aleatoria)
+   3.2. s'' <- LocalSearch(s') // Búsqueda local en vecindad
+   3.3. si (f(s'') < f(s)) entonces:
+          s <- s''
+          k <- 1
+       sino
+          k <- k + 1
+       fin si
+   fin mientras
+\end{verbatim}
+
+Donde \texttt{f(s)} mide el tamaño de la solución (número de aristas perturbadas) o +\(\infty\) si no produce un contrafractual.  
+El \texttt{k} se incrementa para cambiar gradualmente el vecindario (criterios de vecindad distintos).  
+De esta forma se evitan estancamientos en mínimos locales usando múltiples vecindades.
+
+
 \subsection{Label Edge}
 
 Para mejorar la componente aleatoria al seleccionar aristas que perturbar vamos a presentar varios etiquetados de aristas como algoritmo goloso para en cada entrada en dependencia de las caracter\'isticas del modelo y del grafo, selecionar uno de los etiquetados. El algoritmo inicialmente utilizaba el etiquetado trivial, al ordenarlas en dependencia de los pares que representan la arista tomando al menor como comienzo.
@@ -331,6 +463,53 @@ O\Bigl(D\cdot M \sqrt{N}\Bigr).
 
 \subsubsection{Caminos de costo m\'inimo}
 
+Otra idea es pesar las aristas en correspondencia de la cantidad de caminos de costo m\'inimo que pasan por ellas, entonces definimos $w_i$ como esta cantidad.
+
+Para el c\'alculo de $w_i$ utilizamos $Floyd-Warshall$, luego con la matriz que nos brinda, podemos consultar para cada arista $e=uv$ si esta en alg\'un camino m\'inimo entre $a$ y $b$, haciendo la query de $dist(a,b) = dist(a,u) + p(e) + dist(v,b) || dist(a,b) = dist(a,v) + p(e) + dist(u, b)$, lo corre en el mismo tiempo que el algoritmo para calcular las distancias m\'inimas $O(n^3)$ donde $n$ es la cantidad de nodos del grafo.
+
 \subsubsection{Conexidad}
 
+
+Dado un grafo no dirigido \(G\) con \(n\) vértices y \(m\) aristas, tanto la conectividad de aristas como la conectividad de vértices son características que describen el grafo.
+
+
+La conectividad de aristas \(\lambda\) del grafo \(G\) es el número mínimo de aristas que deben eliminarse para que el grafo \(G\) se desconecte.
+
+Por ejemplo, un grafo ya desconectado tiene una conectividad de aristas de \(0\); un grafo conectado con al menos un puente tiene una conectividad de aristas de \(1\); y un grafo conectado sin puentes tiene una conectividad de aristas de al menos \(2\).
+
+Decimos que un conjunto \(S\) de aristas separa a los vértices \(s\) y \(t\) si, tras eliminar todas las aristas de \(S\) del grafo \(G\), los vértices \(s\) y \(t\) quedan en componentes conexas distintas.
+
+Es claro que la conectividad de aristas de un grafo es igual al tamaño mínimo de un conjunto que separe dos vértices \(s\) y \(t\), tomado entre todos los posibles pares \((s, t)\).
+
+
+La conectividad de vértices \(\kappa\) del grafo \(G\) es el número mínimo de vértices que deben eliminarse para que el grafo \(G\) se desconecte.
+
+Por ejemplo, un grafo ya desconectado tiene una conectividad de vértices de \(0\), y un grafo conectado con un punto de articulación tiene una conectividad de vértices de \(1\). Definimos que un grafo completo tiene una conectividad de vértices de \(n-1\). Para todos los demás grafos, la conectividad de vértices no excede de \(n-2\), ya que se puede encontrar un par de vértices que no están conectados por una arista y eliminar todos los otros \(n-2\) vértices.
+
+Decimos que un conjunto \(T\) de vértices separa a los vértices \(s\) y \(t\) si, tras eliminar todos los vértices de \(T\) del grafo \(G\), dichos vértices quedan en componentes conexas diferentes.
+
+Es claro que la conectividad de vértices de un grafo es igual al tamaño mínimo de un conjunto que separe dos vértices \(s\) y \(t\), tomado entre todos los posibles pares \((s, t)\).
+
+Las desigualdades de Whitney (1932) establecen una relación entre la conectividad de aristas \(\lambda\), la conectividad de vértices \(\kappa\) y el grado mínimo de cualquier vértice en el grafo \(\delta\):
+\[
+\kappa \le \lambda \le \delta.
+\]
+Intuitivamente, si tenemos un conjunto de aristas de tamaño \(\lambda\) que desconecta el grafo, podemos elegir uno de cada extremo y formar un conjunto de vértices que también desconecta el grafo. Este conjunto tendrá tamaño \(\le \lambda\).
+
+Asimismo, si tomamos el vértice de grado mínimo \(\delta\) y eliminamos todas las aristas conectadas a él, también obtenemos un grafo desconectado. Por ello, se cumple la desigualdad \(\lambda \le \delta\).
+
+Es interesante notar que las desigualdades de Whitney no pueden mejorarse: es decir, para cualquier triple de números que satisfaga esta desigualdad existe al menos un grafo correspondiente. Un grafo de este tipo se puede construir de la siguiente manera: el grafo constará de \(2(\delta + 1)\) vértices, donde los primeros \(\delta + 1\) vértices forman un clique (todos los pares de vértices están conectados por una arista) y los segundos \(\delta + 1\) vértices forman otro clique. Además, se conectan los dos cliques con \(\lambda\) aristas, de modo que se usen \(\lambda\) vértices diferentes en el primer clique y solo \(\kappa\) vértices en el segundo clique. El grafo resultante tendrá las tres características.
+
+El teorema de Ford-Fulkerson implica que el mayor número de caminos disjuntos en aristas que conectan dos vértices es igual al menor número de aristas que separan dichos vértices.
+
+
+Este método se basa en el teorema de Ford-Fulkerson.
+
+Se itera sobre todos los pares de vértices \((s, t)\) y, para cada par, se encuentra el mayor número de caminos disjuntos entre ellos. Este valor se puede obtener utilizando un algoritmo de flujo máximo: se utiliza \(s\) como fuente, \(t\) como sumidero y se asigna a cada arista una capacidad de \(1\). De esta forma, el flujo máximo es igual al número de caminos disjuntos.
+
+La complejidad del algoritmo usando Edmonds-Karp es \(O(V^2 \, E^2) = O(V^3 \, E^2)\). Sin embargo, cabe notar que esto incluye un factor oculto, ya que es prácticamente imposible crear un grafo de manera que el algoritmo de flujo máximo sea lento para todas las fuentes y sumideros. Especialmente, el algoritmo se ejecuta de forma bastante rápida en grafos aleatorios.
+
+El problema de encontrar la conectividad de aristas es equivalente al problema de hallar el corte mínimo global.
+
+Se han desarrollado algoritmos especiales para este problema. Uno de ellos es el algoritmo de Stoer-Wagner, que funciona en tiempo \(O(V^3)\) o \(O(V \, E)\).
 \end{document} $
