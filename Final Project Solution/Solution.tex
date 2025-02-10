@@ -46,33 +46,33 @@ Luego tenemos un modelo que desconocemos que predice, al cual llamaremos or\'acu
 
 El proceso de b\'usqueda de contrafactuales se dividir\'a en dos partes \textbf{generate} y \textbf{minimizer}, la primera se centra en buscar un contrafactual, pero no asegura que sea m\'inimo, y la segunda se dedica a mejorar el contrafactual encontrado inicialmente.
 
-Este problema usualmente es atacado con modelos de ML pero en nuestro caso se propone un algoritmo de aproximaci\'on (metaheur\'istica), se queda de estudio si es un \textbf{k-factor} 
+Este problema usualmente es atacado con modelos de ML pero en nuestro caso se propone un algoritmo de aproximaci\'on (metaheur\'istica), se queda de estudio si es un \textbf{k-factor} .
 
 \section{Metodolog\'ia}
 
-Uno de los requisitos que se quieren mejorar es la cantidad de llamadas al or\'aculo debido a los costosa que son, por lo que en ambas secciones se pretende minizar las mismas. En nuestra primera secci\'on de b\'usqueda de minimizer se brinda una soluci\'on lineal en el tamaño del dataset con respecto a la cantidad de llamados al or\'aculo, asegurando un buen comienzo para el \textbf{minimizer} jugando con la geometr\'ia del espacio. Luego en nuestra segunda secci\'on se brinda un algoritmo de aproximaci\'on que tiene una componente probabil\'istica, que luego se mejorar\'a con m\'etodos de \textbf{taggeo} en aristas. Se brindan varios m\'etodos para etiquetar las aristas, se comentan curiosidades de problemas abiertos, teoremas importantes y soluciones cl\'asicas a problemas hermosos. Para la verificaci\'on de la eficiencia de las soluciones se cuentan con varios datasets.
+Uno de los requisitos que se quieren mejorar es la cantidad de llamadas al or\'aculo debido a lo costosas que son, por lo que en ambas secciones se pretende minimizar las mismas. En nuestra primera secci\'on de b\'usqueda de minimizer se brinda una soluci\'on lineal en el tamaño del dataset con respecto a la cantidad de llamados al or\'aculo, asegurando un buen comienzo para el \textbf{minimizer} jugando con la geometr\'ia del espacio. Luego en nuestra segunda secci\'on se brinda un algoritmo de aproximaci\'on que tiene una componente probabil\'istica, que luego se mejorar\'a con m\'etodos de \textbf{taggeo} en aristas. Se brindan varios m\'etodos para etiquetar las aristas, se comentan curiosidades de problemas abiertos, teoremas importantes y soluciones cl\'asicas a problemas hermosos. Para la verificaci\'on de la eficiencia de las soluciones se cuenta con varios datasets.
 
 \section{Generate}
 
 
-Supongamos que tenemos todas las categorias existentes en nuestro dataset $C_1, C_2, ..., C_m$ y queremos generar un contrafractual para el grafo $G$ con el modelo $M$, si  $C_i$ es a la que pertenece $G$, un contrafractual v\'alido para $G$ con $M$ ser\'ia cualquier grafo que pertenece a $C_j$ con $j \ne i$. Tambi\'en ser\'ia bueno tener grafos cercanos de forma general a todos los grafos de la entrada, por lo que vamos a construir una idea de cercania.
+Supongamos que tenemos todas las categorías existentes en nuestro dataset $C_1, C_2, ..., C_m$ y queremos generar un contrafactual para el grafo $G$ con el modelo $M$, si  $C_i$ es a la que pertenece $G$, un contrafactual v\'alido para $G$ con $M$ ser\'ia cualquier grafo que pertenece a $C_j$ con $j \ne i$. Tambi\'en ser\'ia bueno tener grafos cercanos de forma general a todos los grafos de la entrada, por lo que vamos a construir una idea de cercanía.
 
 Dado una categor\'ia del $C$, formemos el subconjunto de los grafos del dataset que pertenecen a $C$ (realizando una llamada al or\'aculo podemos saber a que categor\'ia pertenece). Nos concierne encontrar un grafo especial intuitivamente cercano a todos los grafos de categor\'ias diferentes a $C$ (\textbf{memoide}), si se logra modelar los grafos como puntos en un espacio, entonces el problema se reducir\'ia a encontrar el punto que minimiza la distancia a todos los puntos de las categor\'ias diferentes.
 
-Para modelar nuestro espacio vectorizamos los grafos de la siguiente forma, sea $G$ entonces tendremos $v$ un vector de $\binom{E(G)}{2}$ componentes donde los $x_i$ son binarias, $1$ si la arista $e$ en la posici\'on $i$ est\'a en $G$, $0$ en caso contrario, en donde el orden de las aristas esta dado por el orden de los par ordenado $(xy)$ que representan la arista $xy$ (aqui tomemos $x<y$ para desambiguar). Luego la distancia entre dos puntos equivale a $ED(G, G')$ 
+Para modelar nuestro espacio vectorizamos los grafos de la siguiente forma, sea $G$ entonces tendremos $v$ un vector de $\binom{E(G)}{2}$ componentes donde los $x_i$ son binarios, $1$ si la arista $e$ en la posici\'on $i$ est\'a en $G$, $0$ en caso contrario, en donde el orden de las aristas esta dado por el orden de los par ordenado $(xy)$ que representan la arista $xy$ (aqui tomemos $x<y$ para desambiguar). Luego la distancia entre dos puntos equivale a $ED(G, G')$.
 
-Entonces simplemente dado una categor\'ia $C$ el memoide de dicha categor\'ia ser\'a $G$ si y solo si $G \in C$ y si existe $G' \in C$ entonces $\sum_{G'' \notin C} ED(G, G'') \leq \sum_{G'' \notin C} ED(G', G'')$
+Entonces simplemente dado una categor\'ia $C$ el memoide de dicha categor\'ia ser\'a $G$ si y solo si $G \in C$ y si existe $G' \in C$ entonces $\sum_{G'' \notin C} ED(G, G'') \leq \sum_{G'' \notin C} ED(G', G'')$.
 
-Luego podemos tener un grafo 'cercano' a cualquier grafo en cada una de las categor\'ias, por lo que obtener un contrafractual consistir\'a en iterar por todas las categor\'ias diferentes a la que pertenece el grafo en cuesti\'on y devolver el m\'as cercano a \'el.
+Luego podemos tener un grafo 'cercano' a cualquier grafo en cada una de las categor\'ias, por lo que obtener un contrafactual consistir\'a en iterar por todas las categor\'ias diferentes a la que pertenece el grafo en cuesti\'on y devolver el m\'as cercano a \'el.
 
-Entonces tenemos una soluci\'on en $O(n^2)$ donde $n$ es el tamaño del dataset porque dado un grafo se itera por todos los dem\'as grafos que cumplen que est\'an en categor\'ias diferentes y se acumula la suma, y solo necesitamos llamar al or\'aculo $n$ veces, luego al entrar un grafo se hace una llamada m\'as al or\'aculo para saber cual es su categor\'ia y se busca en las categorias diferentes cual esta m\'as cercano. Por lo que sabemos que hicimos la cantidad m\'inima de llamados al or\'aculo para dar un contrafactual sensato inicial, una idea podr\'ia haber sido iterar por el dataset en cada entrada e ir preguntando cual es el primero en una categor\'ia diferente, pero esto no es eficiente pues tendriamos varios llamados para un mismo grafo, y tambi\'en disminuimos la cantidad de iteraciones por entrada, solo a la cantidad de categor\'ias diferentes, aunque perdimos en eficiencia porque se podr\'ia devolver la primera diferente pero queremos mejorar en optimalidad del contrafactual en si manteniendo un balance porque se podr\'ia buscar directamente el m\'as cercano a la entrada.
+Entonces tenemos una soluci\'on en $O(n^2)$ donde $n$ es el tamaño del dataset porque dado un grafo se itera por todos los dem\'as grafos que cumplen que est\'an en categor\'ias diferentes y se acumula la suma, y solo necesitamos llamar al or\'aculo $n$ veces, luego al entrar un grafo se hace una llamada m\'as al or\'aculo para saber cual es su categor\'ia y se busca en las categorias diferentes cual está m\'as cercano. Por lo que sabemos que hicimos la cantidad m\'inima de llamados al or\'aculo para dar un contrafactual sensato inicial, una idea podr\'ia haber sido iterar por el dataset en cada entrada e ir preguntando cual es el primero en una categor\'ia diferente, pero esto no es eficiente pues tendriamos varios llamados para un mismo grafo, y tambi\'en disminuimos la cantidad de iteraciones por entrada, solo a la cantidad de categor\'ias diferentes, aunque perdimos en eficiencia porque se podr\'ia devolver la primera diferente pero queremos mejorar en optimalidad del contrafactual en si manteniendo un balance porque se podr\'ia buscar directamente el m\'as cercano a la entrada.
 
 \section{Minimizer}
 
 \subsection{Local Search}
 
 Sea $G = (V, E)$ un grafo genérico y un modelo de caja negra (u \emph{oráculo}) $M$ que clasifica o decide sobre $G$. 
-Decimos que un \emph{contrafractual} para $G$ es un grafo $G'$ resultante de perturbar (insertar o eliminar) aristas en $G$ tales que la salida de $M$ con entrada $G'$ cambia con respecto a la salida de $M$ con entrada $G$.  
+Decimos que un \emph{contrafactual} para $G$ es un grafo $G'$ resultante de perturbar (insertar o eliminar) aristas en $G$ tales que la salida de $M$ con entrada $G'$ cambia con respecto a la salida de $M$ con entrada $G$.  
 El problema \emph{GCE} (\emph{Graph Counterfactual Explanation}) pregunta: 
 
 \begin{quote}
@@ -133,7 +133,7 @@ Existe un conjunto $S \subseteq E$ con $|S|\leq k$ tal que eliminar $S$ de $G$ p
 Al presentar $G$ a $M'$, su salida es \texttt{false} (pues $G$ tenía ciclos).  
 Al perturbar (eliminar) exactamente las aristas en $S$, obtenemos $G'$ sin ciclos.  
 Entonces $M'(G') = \texttt{true}$.  
-Por definición, esto es un contrafractual para $G$ con a lo sumo $k$ perturbaciones.  
+Por definición, esto es un contrafactual para $G$ con a lo sumo $k$ perturbaciones.  
 Así, GCE$(G,k,M') = \texttt{true}$.
 
 \paragraph{($\Leftarrow$) Si GCE$(G, k, M') =$ true.}
@@ -155,7 +155,7 @@ Al estar FES en NP-completo, concluimos que GCE es NP-completo.
 
 \end{proof}
 
-\section{Metaheurística de Búsqueda Local (en Versión Resumida)}
+\section{Metaheurística de Búsqueda Local}
 
 Para aproximar la solución de GCE (dado que es NP-completo), se propone una metaheurística basada en \emph{búsqueda local}.  
 En particular, se emplea \textbf{Búsqueda de Vecindad Variable (VNS)}, cuyas ideas clave son:
@@ -172,7 +172,7 @@ En particular, se emplea \textbf{Búsqueda de Vecindad Variable (VNS)}, cuyas id
     \end{enumerate}
     \item \textbf{Estrategia de VNS:} 
     \begin{enumerate}
-        \item Iniciar con una solución factible (un contrafractual cualquiera, posiblemente grande).  
+        \item Iniciar con una solución factible (un contrafactual cualquiera, posiblemente grande).  
         \item Cambiar sistemáticamente de vecindad cuando no se consiguen mejoras (o cuando se encuentran mínimos locales).  
         \item Si se encuentra una mejor solución en una vecindad, se actualiza la solución actual y se regresa al vecindario más pequeño.  
         \item Repetir hasta criterio de parada (tiempo, número de iteraciones sin mejora, etc.). 
@@ -192,24 +192,24 @@ En particular, se emplea \textbf{Búsqueda de Vecindad Variable (VNS)}, cuyas id
    3.3. si (f(s'') < f(s)) entonces:
           s <- s''
           k <- 1
-       sino
+       si no
           k <- k + 1
        fin si
    fin mientras
 \end{verbatim}
 
-Donde \texttt{f(s)} mide el tamaño de la solución (número de aristas perturbadas) o +\(\infty\) si no produce un contrafractual.  
+Donde \texttt{f(s)} mide el tamaño de la solución (número de aristas perturbadas) o +\(\infty\) si no produce un contrafactual.  
 El \texttt{k} se incrementa para cambiar gradualmente el vecindario (criterios de vecindad distintos).  
 De esta forma se evitan estancamientos en mínimos locales usando múltiples vecindades.
 
 
 \subsection{Label Edge}
 
-Para mejorar la componente aleatoria al seleccionar aristas que perturbar vamos a presentar varios etiquetados de aristas como algoritmo goloso para en cada entrada en dependencia de las caracter\'isticas del modelo y del grafo, selecionar uno de los etiquetados. El algoritmo inicialmente utilizaba el etiquetado trivial, al ordenarlas en dependencia de los pares que representan la arista tomando al menor como comienzo.
+Para mejorar la componente aleatoria al seleccionar aristas que perturbar vamos a presentar varios etiquetados de aristas como algoritmo goloso para en cada entrada en dependencia de las caracter\'isticas del modelo y del grafo, seleccionar uno de los etiquetados. El algoritmo inicialmente utilizaba el etiquetado trivial, al ordenarlas en dependencia de los pares que representan la arista tomando al menor como comienzo.
 
 \subsubsection{Etiquetado Elegante}
 
-A modo culturar presentamos este etiquetado de vertices. Este etiquetado conocido como \textbf{graceful labeling} se basa en una inyecci\'on de los vertices en el conjunto $\{0, 1, ..., E(G)\}$ tal que $e=uv$ recibe la etiqueta $|u - v|$, notemos que los valores de las aristas est\'an entre 1 y $E(G)$, ahora si las etiquetas de las aristas son \'unicas entonces el grafo recibe el nombre de \textbf{graceful}.
+A modo cultural presentamos este etiquetado de vertices. Este etiquetado conocido como \textbf{graceful labeling} se basa en una inyecci\'on de los vertices en el conjunto $\{0, 1, ..., E(G)\}$ tal que $e=uv$ recibe la etiqueta $|u - v|$, notemos que los valores de las aristas est\'an entre 1 y $E(G)$, ahora si las etiquetas de las aristas son \'unicas entonces el grafo recibe el nombre de \textbf{graceful}.
 
 Un problema abierto en teor\'ia de grafos es la conjetura de Ringel-Kotzig o  \textbf{graceful tree}, la cual dice que todos los \'arboles son graceful.
 
@@ -223,15 +223,15 @@ El problema consiste en buscar una forma de asignar etiquetas a las aristas que 
 Aqu\'i se tiene un buen resultado una condicion necesaria para que un grafo sea edge-graceful debe cumplir que si $q = E(G)$ y $p = V(G)$ entonces:
 $$q(q+1) \equiv \frac{p(p-1)}{2} \mod p$$
 
-Esto sale del hecho que la suma de las etiquetas de los v\'ertices es dos veces la suma de las etiquetas de las aristas 
+Esto sale del hecho que la suma de las etiquetas de los v\'ertices es dos veces la suma de las etiquetas de las aristas.
 
-Tambi\'en se tiene \textbf{Harmonious labeling} de un grafo es una inyecci\'on de los v\'ertices al grupo de enteros mod  $k$, donde $k$ es el n\'umero de aristas, que induce una biyecci\'on entre las aristas de $G$ y los n\'umeros mod $k$, donde a la arista $e=uv$ se le asigna $v+u \mod k$. Est\'a conjeturado que los \'arboles son todos harmoniosos si uno de las etiquetas de los v\'ertices tiene permitido ser reusada.
+Tambi\'en se tiene \textbf{Harmonious labeling} de un grafo es una inyecci\'on de los v\'ertices al grupo de enteros mod  $k$, donde $k$ es el n\'umero de aristas, que induce una biyecci\'on entre las aristas de $G$ y los n\'umeros mod $k$, donde a la arista $e=uv$ se le asigna $v+u \mod k$. Est\'a conjeturado que los \'arboles son todos harmoniosos si una de las etiquetas de los v\'ertices tiene permitido ser reusada.
 
 \subsubsection{Coloraci\'on de Aristas}
  Un problema conocido es el coloreo de grafos, ya sea en v\'ertices o en aristas, en nuestro caso nos concierne solo las aristas, queremos etiquetar las aristas de forma que si dos aristas comparten alg\'un extremo entonces tengan colores diferentes. Se quiere minimizar la cantidad de colores diferentes usados.
 
 
- Comencemos creando unas ideas iniciales. Sea $D = max_{v \in V(g)}deg(v)$ o sea el mayor de los grados del grafo, dado que las aristas de un mismo v\'ertice tienen que tener todas colores diferentes entonces, no se puede colorear con menos de $D$ colores. Por lo que si de alguna manera ponemos colorear el grafo con $D$ colores esta ser\'a m\'inima. Esto obviamente no es cierto consideremos $C_3$, tendr\'iamos $D = 2$ y no funcionar\'ia, necesitamos $D+1$ colores. De hecho tenemos el teorema de Vizing, que expresa que un grafo simple se puede colorear las aristas con a lo sumo $D + 1$ colores, por lo que habran dos clases de grafos, los que necesitan $D$ y los que necesitan $D+1$, existe una versi\'on m\'as general para multigrafos que es muy similar lo que requiere de la multiplicidad, se necesitan a los sumo $D + m$ donde $m$ es la multiplicad del multigrafo.
+ Comencemos creando unas ideas iniciales. Sea $D = max_{v \in V(g)}deg(v)$ o sea el mayor de los grados del grafo, dado que las aristas de un mismo v\'ertice tienen que tener todas colores diferentes entonces, no se puede colorear con menos de $D$ colores. Por lo que si de alguna manera podemos colorear el grafo con $D$ colores esta ser\'a m\'inima. Esto obviamente no es cierto consideremos $C_3$, tendr\'iamos $D = 2$ y no funcionar\'ia, necesitamos $D+1$ colores. De hecho tenemos el teorema de Vizing, que expresa que un grafo simple se puede colorear las aristas con a lo sumo $D + 1$ colores, por lo que habran dos clases de grafos, los que necesitan $D$ y los que necesitan $D+1$, existe una versi\'on m\'as general para multigrafos que es muy similar lo que requiere de la multiplicidad, se necesitan a los sumo $D + m$ donde $m$ es la multiplicidad del multigrafo.
 
  Aun cuando casi todos los grafos pertenecen a la clase 1 (Erdos y Wilson $lim_{n \rightarrow  \infty} \frac{|G_n^1|}{|G_n|} = 1$) con los bipartitos incluidos (Koning) resulta que es $Np$ el problema de decisi\'on si $G$ admite un $k-edge$ coloreo.
 
