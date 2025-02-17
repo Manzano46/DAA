@@ -181,28 +181,6 @@ En particular, se emplea \textbf{Búsqueda de Vecindad Variable (VNS)}, cuyas id
     Por lo general se adopta la primera mejora (\emph{first improvement}) o la mejor mejora (\emph{best improvement}) en cada vecindario.
 \end{itemize}
 
-\subsection*{Esquema en pseudocódigo resumido}
-
-\begin{verbatim}
-1. s <- GenerarSolucionInicialFactible(G)
-2. k <- 1
-3. mientras (no se cumpla criterio_parada) hacer:
-   3.1. s' <- Shaking(s, k)   // Pequeña sacudida (perturbación aleatoria)
-   3.2. s'' <- LocalSearch(s') // Búsqueda local en vecindad
-   3.3. si (f(s'') < f(s)) entonces:
-          s <- s''
-          k <- 1
-       si no
-          k <- k + 1
-       fin si
-   fin mientras
-\end{verbatim}
-
-Donde \texttt{f(s)} mide el tamaño de la solución (número de aristas perturbadas) o +\(\infty\) si no produce un contrafactual.  
-El \texttt{k} se incrementa para cambiar gradualmente el vecindario (criterios de vecindad distintos).  
-De esta forma se evitan estancamientos en mínimos locales usando múltiples vecindades.
-
-
 \subsection{Label Edge}
 
 Para mejorar la componente aleatoria al seleccionar aristas que perturbar vamos a presentar varios etiquetados de aristas como algoritmo goloso para en cada entrada en dependencia de las caracter\'isticas del modelo y del grafo, seleccionar uno de los etiquetados. El algoritmo inicialmente utilizaba el etiquetado trivial, al ordenarlas en dependencia de los pares que representan la arista tomando al menor como comienzo.
@@ -233,7 +211,7 @@ Tambi\'en se tiene \textbf{Harmonious labeling} de un grafo es una inyecci\'on d
 
  Comencemos creando unas ideas iniciales. Sea $D = max_{v \in V(g)}deg(v)$ o sea el mayor de los grados del grafo, dado que las aristas de un mismo v\'ertice tienen que tener todas colores diferentes entonces, no se puede colorear con menos de $D$ colores. Por lo que si de alguna manera podemos colorear el grafo con $D$ colores esta ser\'a m\'inima. Esto obviamente no es cierto consideremos $C_3$, tendr\'iamos $D = 2$ y no funcionar\'ia, necesitamos $D+1$ colores. De hecho tenemos el teorema de Vizing, que expresa que un grafo simple se puede colorear las aristas con a lo sumo $D + 1$ colores, por lo que habran dos clases de grafos, los que necesitan $D$ y los que necesitan $D+1$, existe una versi\'on m\'as general para multigrafos que es muy similar lo que requiere de la multiplicidad, se necesitan a los sumo $D + m$ donde $m$ es la multiplicidad del multigrafo.
 
- Aun cuando casi todos los grafos pertenecen a la clase 1 (Erdos y Wilson $lim_{n \rightarrow  \infty} \frac{|G_n^1|}{|G_n|} = 1$) con los bipartitos incluidos (Koning) resulta que es $Np$ el problema de decisi\'on si $G$ admite un $k-edge$ coloreo.
+ Aun cuando casi todos los grafos pertenecen a la clase 1 (Erdos y Wilson $lim_{n \rightarrow  \infty} \frac{|G_n^1|}{|G_n|} = 1$) con los bipartitos incluidos (Koning) resulta que es Np completo el problema de decisi\'on si $G$ admite un $k-edge$ coloreo.
 
  Demostremos el caso de grafos simples (Vizing)
 
@@ -461,55 +439,117 @@ Este resultado también proporciona un algoritmo para encontrar una coloración 
 O\Bigl(D\cdot M \sqrt{N}\Bigr).
 \]
 
-\subsubsection{Caminos de costo m\'inimo}
+Aquí te dejo algunas sugerencias y una versión revisada del fragmento para mejorar la claridad y el rigor técnico:
 
-Otra idea es pesar las aristas en correspondencia de la cantidad de caminos de costo m\'inimo que pasan por ellas, entonces definimos $w_i$ como esta cantidad.
+---
 
-Para el c\'alculo de $w_i$ utilizamos $Floyd-Warshall$, luego con la matriz que nos brinda, podemos consultar para cada arista $e=uv$ si esta en alg\'un camino m\'inimo entre $a$ y $b$, haciendo la query de $dist(a,b) = dist(a,u) + p(e) + dist(v,b) || dist(a,b) = dist(a,v) + p(e) + dist(u, b)$, lo corre en el mismo tiempo que el algoritmo para calcular las distancias m\'inimas $O(n^3)$ donde $n$ es la cantidad de nodos del grafo.
+**Sugerencias Generales:**
+
+1. **Claridad en la Notación:**  
+   - Explica explícitamente qué representa cada variable. Por ejemplo, \(p(e)\) debería quedar definido como el peso o costo de la arista \(e\).
+   - Asegúrate de que el operador "o" se entienda claramente; podrías usar el símbolo \(\lor\) o simplemente escribir "o" en palabras.
+
+2. **Estructura y Explicación del Proceso:**  
+   - Detalla que, tras calcular la matriz de distancias con Floyd-Warshall, se itera sobre todas las parejas de nodos \((a, b)\) y, para cada arista \(e = uv\), se verifica si ésta forma parte de algún camino de costo mínimo entre \(a\) y \(b\).
+   - Menciona cómo se acumula el contador \(w_i\) para cada arista si cumple la condición.
+
+3. **Análisis de Complejidad:**  
+   - Aunque Floyd-Warshall se ejecuta en \(O(n^3)\), es importante aclarar que la verificación para cada arista (si se integra de forma eficiente) no aumenta la complejidad asintótica general.  
+   - Si el grafo es muy denso, podrías incluir una breve discusión sobre el impacto de la iteración extra.
+
+4. **Posibles Mejoras en el Algoritmo:**  
+   - Si el objetivo es optimizar el conteo de caminos en grafos grandes o dispersos, podrías considerar métodos basados en Dijkstra (con modificaciones para contar caminos) que, para cada nodo fuente, pueden ser más eficientes que Floyd-Warshall en grafos con muchos nodos pero pocas aristas.
+
+
+\subsubsection{Caminos de costo mínimo}
+
+Con el objetivo de asignar a cada arista un peso proporcional a la cantidad de caminos de costo mínimo que la utilizan, definimos para cada arista \(e_i\) un valor \(w_i\) que representa dicha cantidad.
+
+Para calcular \(w_i\), primero utilizamos el algoritmo de Floyd-Warshall para obtener la matriz de distancias mínimas entre todos los pares de nodos. Con la matriz resultante, se puede determinar si una arista \(e = uv\) forma parte de algún camino de costo mínimo entre dos nodos cualesquiera \(a\) y \(b\) verificando que se cumpla:
+
+\[
+\text{dist}(a, b) = \text{dist}(a, u) + p(e) + \text{dist}(v, b) \quad \lor \quad \text{dist}(a, b) = \text{dist}(a, v) + p(e) + \text{dist}(u, b),
+\]
+
+donde \(p(e)\) representa el costo de la arista \(e\).
+
+Si se verifica la condición para un par \((a, b)\), se incrementa el contador \(w_i\) de la arista \(e\). Este procedimiento, integrado con Floyd-Warshall, se ejecuta en tiempo \(O(n^3)\), siendo \(n\) la cantidad de nodos del grafo.
+
 
 \subsubsection{Conexidad}
 
-
 Dado un grafo no dirigido \(G\) con \(n\) vértices y \(m\) aristas, tanto la conectividad de aristas como la conectividad de vértices son características que describen el grafo.
 
-
+\paragraph{Conectividad de aristas}
 La conectividad de aristas \(\lambda\) del grafo \(G\) es el número mínimo de aristas que deben eliminarse para que el grafo \(G\) se desconecte.
 
-Por ejemplo, un grafo ya desconectado tiene una conectividad de aristas de \(0\); un grafo conectado con al menos un puente tiene una conectividad de aristas de \(1\); y un grafo conectado sin puentes tiene una conectividad de aristas de al menos \(2\).
+Por ejemplo:
+\begin{itemize}
+    \item Un grafo ya desconectado tiene una conectividad de aristas de \(0\)
+    \item Un grafo conexo con al menos un puente tiene una conectividad de aristas de \(1\)
+    \item Un grafo conexo sin puentes tiene una conectividad de aristas de al menos \(2\)
+\end{itemize}
 
-Decimos que un conjunto \(S\) de aristas separa a los vértices \(s\) y \(t\) si, tras eliminar todas las aristas de \(S\) del grafo \(G\), los vértices \(s\) y \(t\) quedan en componentes conexas distintas.
+Decimos que un conjunto \(S\) de aristas \textbf{separa} a los vértices \(s\) y \(t\) si, tras eliminar todas las aristas de \(S\) del grafo \(G\), los vértices \(s\) y \(t\) quedan en componentes conexas distintas.
 
 Es claro que la conectividad de aristas de un grafo es igual al tamaño mínimo de un conjunto que separe dos vértices \(s\) y \(t\), tomado entre todos los posibles pares \((s, t)\).
 
-
+\paragraph{Conectividad de vértices}
 La conectividad de vértices \(\kappa\) del grafo \(G\) es el número mínimo de vértices que deben eliminarse para que el grafo \(G\) se desconecte.
 
-Por ejemplo, un grafo ya desconectado tiene una conectividad de vértices de \(0\), y un grafo conectado con un punto de articulación tiene una conectividad de vértices de \(1\). Definimos que un grafo completo tiene una conectividad de vértices de \(n-1\). Para todos los demás grafos, la conectividad de vértices no excede de \(n-2\), ya que se puede encontrar un par de vértices que no están conectados por una arista y eliminar todos los otros \(n-2\) vértices.
+Por ejemplo:
+\begin{itemize}
+    \item Un grafo ya desconectado tiene una conectividad de vértices de \(0\)
+    \item Un grafo conexo con un punto de articulación tiene una conectividad de vértices de \(1\)
+    \item Un grafo completo tiene una conectividad de vértices de \(n-1\)
+\end{itemize}
 
-Decimos que un conjunto \(T\) de vértices separa a los vértices \(s\) y \(t\) si, tras eliminar todos los vértices de \(T\) del grafo \(G\), dichos vértices quedan en componentes conexas diferentes.
+Para todos los demás grafos, la conectividad de vértices no excede de \(n-2\), ya que se puede encontrar un par de vértices que no están conectados por una arista y eliminar todos los otros \(n-2\) vértices.
+
+Decimos que un conjunto \(T\) de vértices \textbf{separa} a los vértices \(s\) y \(t\) si, tras eliminar todos los vértices de \(T\) del grafo \(G\), dichos vértices quedan en componentes conexas diferentes.
 
 Es claro que la conectividad de vértices de un grafo es igual al tamaño mínimo de un conjunto que separe dos vértices \(s\) y \(t\), tomado entre todos los posibles pares \((s, t)\).
 
-Las desigualdades de Whitney (1932) establecen una relación entre la conectividad de aristas \(\lambda\), la conectividad de vértices \(\kappa\) y el grado mínimo de cualquier vértice en el grafo \(\delta\):
+\paragraph{Desigualdades de Whitney (1932)}
+Establecen una relación entre la conectividad de aristas \(\lambda\), la conectividad de vértices \(\kappa\) y el grado mínimo de cualquier vértice en el grafo \(\delta\):
 \[
-\kappa \le \lambda \le \delta.
+\kappa \leq \lambda \leq \delta
 \]
-Intuitivamente, si tenemos un conjunto de aristas de tamaño \(\lambda\) que desconecta el grafo, podemos elegir uno de cada extremo y formar un conjunto de vértices que también desconecta el grafo. Este conjunto tendrá tamaño \(\le \lambda\).
 
-Asimismo, si tomamos el vértice de grado mínimo \(\delta\) y eliminamos todas las aristas conectadas a él, también obtenemos un grafo desconectado. Por ello, se cumple la desigualdad \(\lambda \le \delta\).
+Intuitivamente:
+\begin{itemize}
+    \item Si tenemos un conjunto de aristas de tamaño \(\lambda\) que desconecta el grafo, podemos elegir uno de cada extremo y formar un conjunto de vértices que también desconecta el grafo. Este conjunto tendrá tamaño \(\leq \lambda\)
+    \item Si tomamos el vértice de grado mínimo \(\delta\) y eliminamos todas las aristas conectadas a él, también obtenemos un grafo desconectado. Por ello, \(\lambda \leq \delta\)
+\end{itemize}
 
-Es interesante notar que las desigualdades de Whitney no pueden mejorarse: es decir, para cualquier triple de números que satisfaga esta desigualdad existe al menos un grafo correspondiente. Un grafo de este tipo se puede construir de la siguiente manera: el grafo constará de \(2(\delta + 1)\) vértices, donde los primeros \(\delta + 1\) vértices forman un clique (todos los pares de vértices están conectados por una arista) y los segundos \(\delta + 1\) vértices forman otro clique. Además, se conectan los dos cliques con \(\lambda\) aristas, de modo que se usen \(\lambda\) vértices diferentes en el primer clique y solo \(\kappa\) vértices en el segundo clique. El grafo resultante tendrá las tres características.
+Es interesante notar que las desigualdades de Whitney no pueden mejorarse: para cualquier triple de números que satisfaga \(\kappa \leq \lambda \leq \delta\), existe al menos un grafo correspondiente. Un grafo de este tipo se puede construir de la siguiente manera:
+\begin{itemize}
+    \item El grafo constará de \(2(\delta + 1)\) vértices
+    \item Los primeros \(\delta + 1\) vértices forman un \textit{clique} (todos conectados por aristas)
+    \item Los segundos \(\delta + 1\) vértices forman otro \textit{clique}
+    \item Se conectan los dos \textit{cliques} con \(\lambda\) aristas, usando \(\lambda\) vértices diferentes en el primer \textit{clique} y solo \(\kappa\) vértices en el segundo \textit{clique}
+\end{itemize}
 
-El teorema de Ford-Fulkerson implica que el mayor número de caminos disjuntos en aristas que conectan dos vértices es igual al menor número de aristas que separan dichos vértices.
+\paragraph{Teorema de Ford-Fulkerson}
+Implica que el mayor número de caminos disjuntos en aristas que conectan dos vértices es igual al menor número de aristas que separan dichos vértices.
 
+Este método se basa en el teorema de Ford-Fulkerson:
+\begin{itemize}
+    \item Se itera sobre todos los pares de vértices \((s, t)\)
+    \item Para cada par, se encuentra el mayor número de caminos disjuntos usando un algoritmo de flujo máximo:
+    \begin{itemize}
+        \item Se modela \(s\) como fuente y \(t\) como sumidero
+        \item Cada arista tiene capacidad \(1\)
+        \item El flujo máximo es igual al número de caminos disjuntos
+    \end{itemize}
+    \item Complejidad con Edmonds-Karp: \(O(V^2 E^2) = O(V^3 E^2)\)
+    \item En la práctica, el algoritmo es rápido para grafos aleatorios debido a factores constantes favorables
+\end{itemize}
 
-Este método se basa en el teorema de Ford-Fulkerson.
-
-Se itera sobre todos los pares de vértices \((s, t)\) y, para cada par, se encuentra el mayor número de caminos disjuntos entre ellos. Este valor se puede obtener utilizando un algoritmo de flujo máximo: se utiliza \(s\) como fuente, \(t\) como sumidero y se asigna a cada arista una capacidad de \(1\). De esta forma, el flujo máximo es igual al número de caminos disjuntos.
-
-La complejidad del algoritmo usando Edmonds-Karp es \(O(V^2 \, E^2) = O(V^3 \, E^2)\). Sin embargo, cabe notar que esto incluye un factor oculto, ya que es prácticamente imposible crear un grafo de manera que el algoritmo de flujo máximo sea lento para todas las fuentes y sumideros. Especialmente, el algoritmo se ejecuta de forma bastante rápida en grafos aleatorios.
-
-El problema de encontrar la conectividad de aristas es equivalente al problema de hallar el corte mínimo global.
-
-Se han desarrollado algoritmos especiales para este problema. Uno de ellos es el algoritmo de Stoer-Wagner, que funciona en tiempo \(O(V^3)\) o \(O(V \, E)\).
+\paragraph{Algoritmos especializados}
+El problema de encontrar la conectividad de aristas es equivalente al problema de hallar el corte mínimo global. Algoritmos relevantes:
+\begin{itemize}
+    \item \textbf{Algoritmo de Stoer-Wagner}: Funciona en tiempo \(O(V^3)\) o \(O(V E)\)
+    \item Utiliza técnicas avanzadas de manejo de estructuras de datos para mejorar la eficiencia
+\end{itemize}
 \end{document} $
