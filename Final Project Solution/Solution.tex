@@ -373,7 +373,7 @@ Definamos un par de conceptos primero.
     end while
 \end{lstlisting}
 
-La correctitud del algoritmo se demuestra en tres partes, primero se demuestrs que la inversi\'on de un camino $cd_x-path$ garantiza un $w \in \{1,...,k\}$ tal que $F' = F[1:w]$ es un ventilador y $d$ est\'a libre en $F[w]$. Entonces se demuestra que el coloreo de aristas es v\'alido y luego que requiere $D+1$ colores.
+La correctitud del algoritmo se demuestra en tres partes, primero se demuestra que la inversi\'on de un camino $cd_x-path$ garantiza un $w \in \{1,...,k\}$ tal que $F' = F[1:w]$ es un ventilador y $d$ est\'a libre en $F[w]$. Entonces se demuestra que el coloreo de aristas es v\'alido y luego que requiere $D+1$ colores.
 
 Caso 1: El ventilador no tiene aristas coloreadas $d$. Puesto que $F$ es un ventilador maximal de $X$ y $d$ est\'a libre en $F[k]$, entonces $d$ est\'a libre en $X$. De otra forma supongamos que una arista $Xu$ tiene el color $d$, entonces $u$ puede ser agregado a $F$ para hacer un ventilador m\'as grande contradiciendo el hecho de que $F$ era maximal. Por lo que $d$ est\'a libre en $X$, y dado que $c$ tambi\'en esta libre en $X$, entonces no existe $cd_x-path$ y la inversi\'on no tiene efecto en el grafo, establece $w = k$.
 
@@ -438,28 +438,6 @@ Este resultado también proporciona un algoritmo para encontrar una coloración 
 \[
 O\Bigl(D\cdot M \sqrt{N}\Bigr).
 \]
-
-Aquí te dejo algunas sugerencias y una versión revisada del fragmento para mejorar la claridad y el rigor técnico:
-
----
-
-**Sugerencias Generales:**
-
-1. **Claridad en la Notación:**  
-   - Explica explícitamente qué representa cada variable. Por ejemplo, \(p(e)\) debería quedar definido como el peso o costo de la arista \(e\).
-   - Asegúrate de que el operador "o" se entienda claramente; podrías usar el símbolo \(\lor\) o simplemente escribir "o" en palabras.
-
-2. **Estructura y Explicación del Proceso:**  
-   - Detalla que, tras calcular la matriz de distancias con Floyd-Warshall, se itera sobre todas las parejas de nodos \((a, b)\) y, para cada arista \(e = uv\), se verifica si ésta forma parte de algún camino de costo mínimo entre \(a\) y \(b\).
-   - Menciona cómo se acumula el contador \(w_i\) para cada arista si cumple la condición.
-
-3. **Análisis de Complejidad:**  
-   - Aunque Floyd-Warshall se ejecuta en \(O(n^3)\), es importante aclarar que la verificación para cada arista (si se integra de forma eficiente) no aumenta la complejidad asintótica general.  
-   - Si el grafo es muy denso, podrías incluir una breve discusión sobre el impacto de la iteración extra.
-
-4. **Posibles Mejoras en el Algoritmo:**  
-   - Si el objetivo es optimizar el conteo de caminos en grafos grandes o dispersos, podrías considerar métodos basados en Dijkstra (con modificaciones para contar caminos) que, para cada nodo fuente, pueden ser más eficientes que Floyd-Warshall en grafos con muchos nodos pero pocas aristas.
-
 
 \subsubsection{Caminos de costo mínimo}
 
