@@ -203,7 +203,7 @@ $$q(q+1) \equiv \frac{p(p-1)}{2} \mod p$$
 
 Esto sale del hecho que la suma de las etiquetas de los v\'ertices es dos veces la suma de las etiquetas de las aristas.
 
-Tambi\'en se tiene \textbf{Harmonious labeling} de un grafo es una inyecci\'on de los v\'ertices al grupo de enteros mod  $k$, donde $k$ es el n\'umero de aristas, que induce una biyecci\'on entre las aristas de $G$ y los n\'umeros mod $k$, donde a la arista $e=uv$ se le asigna $v+u \mod k$. Est\'a conjeturado que los \'arboles son todos harmoniosos si una de las etiquetas de los v\'ertices tiene permitido ser reusada.
+Tambi\'en se tiene \textbf{Harmonious labeling} de un grafo es una inyecci\'on de los v\'ertices al grupo de enteros mod  $k$, donde $k$ es el n\'umero de aristas, que induce una biyecci\'on entre las aristas de $G$ y los n\'umeros mod $k$, donde a la arista $e=uv$ se le asigna $v+u \mod k$. Est\'a conjeturado que los \'arboles son todos armoniosos si una de las etiquetas de los v\'ertices tiene permitido ser reusada.
 
 \subsubsection{Coloraci\'on de Aristas}
  Un problema conocido es el coloreo de grafos, ya sea en v\'ertices o en aristas, en nuestro caso nos concierne solo las aristas, queremos etiquetar las aristas de forma que si dos aristas comparten alg\'un extremo entonces tengan colores diferentes. Se quiere minimizar la cantidad de colores diferentes usados.
@@ -520,7 +520,7 @@ Este método se basa en el teorema de Ford-Fulkerson:
         \item Cada arista tiene capacidad \(1\)
         \item El flujo máximo es igual al número de caminos disjuntos
     \end{itemize}
-    \item Complejidad con Edmonds-Karp: \(O(V^2 E^2) = O(V^3 E^2)\)
+    \item Complejidad con Edmonds-Karp: \(O(V E^2) \implies O(V^3 E^2)\)
     \item En la práctica, el algoritmo es rápido para grafos aleatorios debido a factores constantes favorables
 \end{itemize}
 
