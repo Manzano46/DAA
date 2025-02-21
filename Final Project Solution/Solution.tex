@@ -12,6 +12,9 @@
 \usepackage{graphicx, graphics}
 \usepackage{listings}
 
+\usepackage{enumitem}
+
+
 \newtheorem{theorem}{Teorema}
 \newtheorem*{remark}{Observación}
 \newtheorem{definition}{Definición}
@@ -59,7 +62,7 @@ Supongamos que tenemos todas las categorías existentes en nuestro dataset $C_1,
 
 Dado una categor\'ia del $C$, formemos el subconjunto de los grafos del dataset que pertenecen a $C$ (realizando una llamada al or\'aculo podemos saber a que categor\'ia pertenece). Nos concierne encontrar un grafo especial intuitivamente cercano a todos los grafos de categor\'ias diferentes a $C$ (\textbf{memoide}), si se logra modelar los grafos como puntos en un espacio, entonces el problema se reducir\'ia a encontrar el punto que minimiza la distancia a todos los puntos de las categor\'ias diferentes.
 
-Para modelar nuestro espacio vectorizamos los grafos de la siguiente forma, sea $G$ entonces tendremos $v$ un vector de $\binom{E(G)}{2}$ componentes donde los $x_i$ son binarios, $1$ si la arista $e$ en la posici\'on $i$ est\'a en $G$, $0$ en caso contrario, en donde el orden de las aristas esta dado por el orden de los par ordenado $(xy)$ que representan la arista $xy$ (aqui tomemos $x<y$ para desambiguar). Luego la distancia entre dos puntos equivale a $ED(G, G')$.
+Para modelar nuestro espacio vectorizamos los grafos de la siguiente forma, sea $G$ entonces tendremos $v$ un vector de $\binom{V(G)}{2}$ componentes donde los $x_i$ son binarios, $1$ si la arista $e$ en la posici\'on $i$ est\'a en $G$, $0$ en caso contrario, en donde el orden de las aristas esta dado por el orden de los par ordenado $(xy)$ que representan la arista $xy$ (aqui tomemos $x<y$ para desambiguar). Luego la distancia entre dos puntos equivale a $ED(G, G')$.
 
 Entonces simplemente dado una categor\'ia $C$ el memoide de dicha categor\'ia ser\'a $G$ si y solo si $G \in C$ y si existe $G' \in C$ entonces $\sum_{G'' \notin C} ED(G, G'') \leq \sum_{G'' \notin C} ED(G', G'')$.
 
@@ -290,48 +293,47 @@ Dado dicho certificado, se puede verificar en tiempo polinómico que:
 \end{itemize}
 Ambos pasos requieren recorrer los conjuntos de aristas y vértices, por lo que la verificación es polinomial. Por ello, el problema está en NP.
 
-\vspace{0.3cm}
-\textbf{(2) NP-dureza:}\\
-La NP-dureza se demuestra mediante una reducción desde el problema de 3-coloración de aristas en grafos cúbicos, el cual es NP-completo (véase Holyer, 1981).
+\begin{definition}[Grafo de Línea]
+    Sea \(G=(V,E)\) un grafo. El \emph{grafo de línea} \(L(G)\) se define como:
+    \[
+    L(G) = (V',E') \quad \text{donde} \quad V' = E \quad \text{y} \quad E' = \big\{ \{e,f\} : e,f \in E,\ e \cap f \neq \varnothing \big\}.
+    \]
+    Es decir, cada vértice de \(L(G)\) representa una arista de \(G\) y dos vértices en \(L(G)\) son adyacentes si las aristas correspondientes en \(G\) comparten un vértice.
+    \end{definition}
 
-Sea $G$ un grafo cúbico, es decir, un grafo en el cual cada vértice tiene grado 3. Por el teorema de Vizing, la cantidad de colores necesaria para colorear las aristas de $G$ es 3 o 4. Entonces, el problema de decidir si $G$ es 3-colorable (es decir, si admite una coloración de aristas con 3 colores) es equivalente a determinar si $G$ es de \emph{Clase 1}. La reducción es directa, ya que la instancia del problema de 3-coloración de aristas es el mismo grafo $G$ junto con $k=3$. Dado que este problema se ha probado NP-completo, se concluye que el problema de coloración de aristas (en su versión de decisión) es NP-difícil.
+La clave de la reducción es la siguiente observación:
+
+\begin{lemma}
+Sea \(G\) un grafo y \(L(G)\) su grafo de línea. Entonces, \(G\) admite un \(k\)-edge-coloring si y solo si \(L(G)\) admite un \(k\)-vertex-coloring.
+\end{lemma}
+
+\begin{proof}
+\textbf{(Si)} Sea \(c: E \to \{1,\dots,k\}\) un \(k\)-edge-coloring de \(G\). Definamos la función \(\tilde{c}: V(L(G)) \to \{1,\dots,k\}\) mediante \(\tilde{c}(e) = c(e)\) para cada \(e \in E = V(L(G))\). Dado que dos aristas adyacentes en \(G\) (y por tanto dos vértices adyacentes en \(L(G)\)) reciben colores distintos, \(\tilde{c}\) es un \(k\)-vertex-coloring de \(L(G)\).
+
+\medskip
+
+\textbf{(Sólo si)} Sea \(f: V(L(G)) \to \{1,\dots,k\}\) un \(k\)-vertex-coloring de \(L(G)\). Definimos \(c: E \to \{1,\dots,k\}\) por \(c(e)=f(e)\) para cada \(e \in E\). Si \(e\) y \(f\) son aristas adyacentes en \(G\), entonces los correspondientes vértices en \(L(G)\) son adyacentes, de modo que \(f(e) \neq f(f)\), lo que implica \(c(e) \neq c(f)\). Así, \(c\) es un \(k\)-edge-coloring de \(G\).
+\end{proof}
+
+
+El problema de coloreo de vértices es NP-completo para grafos generales. Consideremos la siguiente reducción:
+
+\begin{enumerate}[label=\textbf{Paso \arabic*:}, wide, labelwidth=!, labelindent=0pt]
+    \item Dada una instancia \(G=(V,E)\) del problema de \(k\)-edge-coloring, se construye el grafo de línea \(L(G)\) en tiempo polinomial.
+    \item Por el Lema anterior, \(G\) admite un \(k\)-edge-coloring si y solo si \(L(G)\) admite un \(k\)-vertex-coloring.
+    \item Dado que el problema de \(k\)-vertex-coloring es NP-completo, la existencia de un algoritmo polinomial para decidir si \(G\) tiene un \(k\)-edge-coloring implicaría la existencia de un algoritmo polinomial para coloreo de vértices, lo cual es una contradicción a la NP-completitud.
+\end{enumerate}
+
+\begin{theorem}
+Para \(k \geq 3\), el problema de decidir si un grafo \(G\) admite un \(k\)-edge-coloring es NP-hard.
+\end{theorem}
+
+\begin{proof}
+La reducción consiste en transformar cualquier instancia \(G\) del problema de \(k\)-edge-coloring en su grafo de línea \(L(G)\), en tiempo polinomial. Por el Lema, \(G\) admite un \(k\)-edge-coloring si y solo si \(L(G)\) admite un \(k\)-vertex-coloring. Como se sabe que el problema de \(k\)-vertex-coloring es NP-completo para \(k \geq 3\), se concluye que resolver \(k\)-edge-coloring es, al menos, tan difícil (NP-difícil) como el problema de coloreo de vértices.
+\end{proof}
 
 \end{proof}
 
-Para demostrar que es NP-duro se reduce 3-SAT a la 3-coloración de aristas en grafos cúbicos. La idea general es construir, a partir de una fórmula booleana $\phi$ en forma normal conjuntiva, un grafo cúbico $G_\phi$ tal que:
-\[
-\phi \text{ es satisfacible} \quad\Longleftrightarrow\quad G_\phi \text{ es 3-colorable en aristas.}
-\]
-
-La reducción se realiza en tres pasos principales:
-
-\begin{enumerate}
-    \item \textbf{Construcción de Gadgets de Variable:}  
-    Para cada variable $x_i$ de la fórmula $\phi$, se diseña un gadget que admite exactamente dos coloraciones válidas. Estas dos coloraciones se interpretan como las asignaciones de \emph{verdadero} o \emph{falso} para la variable $x_i$. Además, el gadget se conecta con los gadgets de cláusula de forma que la elección de la coloración imponga restricciones sobre los colores en las conexiones.
-
-    \item \textbf{Construcción de Gadgets de Cláusula:}  
-    Para cada cláusula $(\ell_1 \lor \ell_2 \lor \ell_3)$, se construye un gadget que se conecta a los gadgets correspondientes a los literales $\ell_1$, $\ell_2$ y $\ell_3$. El gadget de cláusula se diseña de tal manera que una coloración válida (es decir, una asignación de colores a sus aristas) es posible si y solo si al menos uno de los literales es interpretado como \emph{verdadero}.
-
-    \item \textbf{Conectores y Ajustes para Garantizar la Cubicidad:}  
-    Se incorporan gadgets auxiliares o estructuras de conexión que aseguren que el grafo resultante es cúbico (cada vértice tiene grado 3) y que la transformación se efectúa en tiempo polinómico.
-\end{enumerate}
-
-\paragraph{Gadget de Variable:}  
-El gadget asociado a cada variable $x_i$ está diseñado para que tenga exactamente dos posibles coloraciones (por ejemplo, asignando a algunas aristas el color 1 o el color 2 de forma forzada) y que estas dos coloraciones correspondan a la elección de $x_i=\text{verdadero}$ o $x_i=\text{falso}$. La conexión de este gadget con los gadgets de cláusula se hace mediante "puentes" que transfieren la información de la elección de la variable a la cláusula.
-
-\paragraph{Gadget de Cláusula:}  
-El gadget de cláusula está construido para que, si los tres literales de la cláusula resultan falsos (lo que se reflejaría en la imposibilidad de asignar los colores correctamente en el gadget), entonces no se podrá extender a una coloración válida del grafo completo. Por lo tanto, la existencia de una 3-coloración en aristas para el grafo construido implica que cada cláusula tiene al menos un literal verdadero.
-
-La construcción del grafo $G_\phi$ satisface lo siguiente:
-\begin{itemize}
-    \item \textbf{Si $\phi$ es satisfacible:}  
-    Dada una asignación que satisface $\phi$, se puede escoger la coloración correspondiente en cada gadget de variable. Luego, usando las restricciones impuestas por los gadgets de cláusula y los conectores, se extiende esta asignación a una coloración válida de aristas con 3 colores en todo el grafo $G_\phi$.
-    
-    \item \textbf{Si $G_\phi$ es 3-colorable en aristas:}  
-    A partir de una coloración válida se puede inferir una asignación de valores a las variables. En efecto, la estructura de los gadgets garantiza que, para cada cláusula, al menos uno de los literales debe ser asignado de forma que la cláusula se satisfaga.
-\end{itemize}
-
-Como la transformación de una fórmula $\phi$ a un grafo cúbico $G_\phi$ se realiza en tiempo polinómico, la existencia de un algoritmo polinómico para 3-coloración de aristas implicaría un algoritmo polinómico para 3-SAT, lo cual es un absurdo bajo la hipótesis \(P \neq NP\).
 
 Volviendo al problema inicial como tenemos grafos generales tendremos que dar una soluci\'on aproximada que encuentra un coloreo de $D+1$ colores. En caso de que se pudiera asegurar que todos los grafos son bipartitos, existe una forma de resolver el problema coloreando con $D$ colores utilizando flujo m\'aximo con lowerbound.
 
@@ -350,6 +352,7 @@ Definamos un par de conceptos primero.
         \end{itemize}
         Dado un ventilador $F$, cualquier arista $XF[i]$ para $1 \leq i \leq k$ es una arista de ventilador.
     \item Rotar un ventilador: Dado un ventilador $F[1:k]$ de un v\'ertice $X$, la operaci\'on de rotar el ventilador hace lo siguiente: $for i=1,...,k-1$ asigna el color de $XF[i+1]$ a la arista $XF[i]$ y descolorea $XF[k]$. Esta operaci\'on deja un coloreo v\'alido debido a la definici\'on de ventilador, el color de $XF[i+1]$ est\'a libre para $F[i]$
+    \item Sean $c$ y $d$ colores. Un $cd_x-path$ es un camino que pasa por $X$, y solo contiene aristas de los colores $c$ o $d$ y es maximal. Si ninguno de los colores $c$ o $d$ es incidente en $X$ no existe dicho camino. Y si existe el camino entonces es \'unico.
     \item cd-path: La operaci\'on invertir el $cd_x-path$ cambia cada arista del camino coloreado $c$ a $d$ y cada arista coloreada $d$ a $c$. Invertir un camino puede ser \'util para liberar un color en $X$ si $X$ es uno de los extremos del camino: Si el color $c$ pero no $d$ es incidente en $X$, ahora el color $d$ pero no $c$ es incidente en $X$, liberando a $c$ de $X$. Esta operaci\'on deja un coloreo v\'alido. Para v\'ertices en el camino que no son extremos, ning\'un color es agregado. Para extremos, la operaci\'on cambia de color uno de sus aristas entre $c$ y $d$. Esto es v\'alido: supongamos que el extremo estaba conectado por una $c$ arista, entonces $d$ fue liberado en ese extremo, porque en otro caso, este v\'ertice no pod\'ia ser un extremo. Puesto que $d$ era libre, esta arista cambia a $d$.
 \end{itemize}
 
@@ -360,7 +363,7 @@ Definamos un par de conceptos primero.
 
     Sea U := E(G)
 
-    while U $\neq$ $\empty$ do
+    while U $\neq$ $\emptyset$ do
         Sea (X,v) una arista en U.  
         Sea F[1:k] un ventilador maximal de X con F[1]=v.
         Sea c un color libre en X y d un color libre en F[k].  
@@ -451,7 +454,7 @@ Para calcular \(w_i\), primero utilizamos el algoritmo de Floyd-Warshall para ob
 
 donde \(p(e)\) representa el costo de la arista \(e\).
 
-Si se verifica la condición para un par \((a, b)\), se incrementa el contador \(w_i\) de la arista \(e\). Este procedimiento, integrado con Floyd-Warshall, se ejecuta en tiempo \(O(n^3)\), siendo \(n\) la cantidad de nodos del grafo.
+Si se verifica la condición para un par \((a, b)\), se incrementa el contador \(w_i\) de la arista \(e\). Este procedimiento, integrado con Floyd-Warshall, se ejecuta en tiempo \(O(n^4)\), siendo \(n\) la cantidad de nodos del grafo.
 
 
 \subsubsection{Conexidad}
